@@ -211,7 +211,7 @@ subroutine initialize_gitm(TimeIn)
               dLatDist_GB(iLon, iLat, iAlt, iBlock) = 0.5 * &
                 (Latitude(iLat+1, iBlock) - Latitude(iLat-1, iBlock)) * &
                 RadialDistance_GB(iLon, iLat, iAlt, iBlock)
-
+              
               ! This is the distance between neighboring cells
               ! Note that face(i) is between cells i and i-1 (like in BATSRUS)
               dLatDist_FB(iLon, iLat, iAlt, iBlock) = &
@@ -236,7 +236,6 @@ subroutine initialize_gitm(TimeIn)
                    dLonDist_GB(iLon, iLat, iAlt, iBlock) * &
                    dLatDist_GB(iLon, iLat, iAlt, iBlock) * &
                    dAlt_GB(iLon,iLat,iAlt,iBlock) 
-
            enddo
 
            ! Fill in longitude ghost cells

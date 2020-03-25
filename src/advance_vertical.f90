@@ -26,9 +26,12 @@ subroutine advance_vertical(iLon,iLat,iBlock)
        KappaTemp_1d, &
        Gravity_G, Altitude_G, dAlt_C, InvRadialDistance_C, dAlt_F, InvDAlt_F, &
        Cv_1D, dAltdLon_1D, dAltdLat_1D, SZAVertical, MLatVertical
-  
+  use ModUserGITM
+
 
   implicit none
+  real, dimension(1:nAlts) :: NewAdiabatic_full_Vert, &
+      NewAdiabatic_Vert, NewAdvective_Vert
 
   integer, intent(in) :: iLon, iLat, iBlock
 
@@ -116,14 +119,28 @@ subroutine advance_vertical(iLon,iLat,iBlock)
  ! call advance_vertical_1d
 
   if (UseAUSMSolver) then
-     call advance_vertical_1d_ausm
+     call advance_vertical_1d_ausm(NewAdiabatic_full_Vert, &
+      NewAdiabatic_Vert, NewAdvective_Vert)
   else
      ! Default case
      call advance_vertical_1d_rusanov
   endif
-  
 
-   Rho(iLon,iLat,:,iBlock)                  = exp(LogRho)
+  !write(*,*) 'Adb Full Vert', NewAdiabatic_full_Vert
+  !write(*,*) 'Adb Vert', NewAdiabatic_Vert
+  !write(*,*) 'Adv Vert', NewAdvective_Vert
+ 
+  UserData3D(iLon,iLat,1:nAlts,10,iBlock) = 0.0
+  UserData3D(iLon,iLat,1:nAlts,10,iBlock) =  NewAdiabatic_Vert !so these are  without tempunit
+
+  UserData3D(iLon,iLat,1:nAlts,11,iBlock) = 0.0
+  UserData3D(iLon,iLat,1:nAlts,11,iBlock) =  NewAdiabatic_full_Vert
+  
+  UserData3D(iLon,iLat,1:nAlts,12,iBlock) = 0.0
+  UserData3D(iLon,iLat,1:nAlts,12,iBlock) =  NewAdvective_Vert
+
+
+  Rho(iLon,iLat,:,iBlock)                  = exp(LogRho)
 
   do iDim = 1, 3 
      Velocity(iLon,iLat,:,iDim,iBlock)           = Vel_GD(:,iDim)

@@ -35,7 +35,7 @@ subroutine set_inputs
   integer :: iDebugProc=0
   character (len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
-  integer :: i, iError, iOutputTypes
+  integer :: i, iError, iOutputTypes,iLowBCFile,iTHMFile
   integer, dimension(7) :: iTimeEnd
 
   character (len=iCharLen_)                 :: cTempLine
@@ -306,6 +306,50 @@ subroutine set_inputs
               enddo
            endif
 
+        case('#LowBMSISonlyO')
+           call read_in_logical(LowBMSISonlyO,iError)
+
+        case('#LowBVertVel')
+           call read_in_logical(LowBVertVel,iError)
+
+        case("#LOWBCFILES")
+           call read_in_logical(UseLowerBC,iError)
+           call read_in_logical(DoOverwriteThermosphereWinds,iError)
+           call read_in_real(RelaxationTime,iError)
+           if (UseLowerBC) then 
+               call read_in_int(nBCFiles, iError)
+               allocate(BCFilenames(nBCFiles))
+               do iLowBCFile=1, nBCFiles
+                    call read_in_string(BCFilenames(iLowBCFile), iError)
+               enddo
+               !call read_netcdf()
+               !call load_files_mem_eff
+               if (iError/=0) then
+                    write(*,*) 'Incorrect format for #LOWBCFILES'
+                    write(*,*) 'This says how to use lower boundary'
+                    write(*,*) 'conditions. The first one is the'
+                    write(*,*) 'number of files being used. The second'
+                    write(*,*) 'to 6th are the names of the files'
+                    write(*,*) 'The last one checks if the time in the files'
+                    write(*,*) 'is a true time or a relative time'
+                    write(*,*) '#LOWBCFILES'
+                    write(*,*) 'nBCFiles           (int, number of files)'
+                    write(*,*) 'BCFilename        (string, File name)'
+                    write(*,*) 'IsRealTime         (logical, if the time is a true time)'
+                endif
+           endif
+
+
+        case("#LBTIMEIND")
+            call read_in_logical(LowBoundaryTimeInd,iError)
+            !write(*,*) 'set_inputs', LowBoundaryTimeInd
+            if (iError /= 0) then
+                write(*,*) 'Incorrect format for #LowBoundaryTimeInd:'
+                write(*,*) 'This says how to Use MSIS for low boundary'
+                write(*,*) 'This is useful for multiple runs'
+                write(*,*) 'so that altitude grid is same across'
+            endif 
+
         case ("#TIDES")
            call read_in_logical(UseMSISOnly, iError)
            call read_in_logical(UseMSISTides, iError)
@@ -380,6 +424,22 @@ subroutine set_inputs
               write(*,*) 'DoOverwriteWithSami'
               write(*,*) 'SamiInFile'
            endif
+        
+        !case ("#OVERWRITETHERMOSPHEREWINDS")
+        !   call read_in_logical(DoOverwriteThermosphereWinds,iError)
+        !   if (DoOverwriteThermosphereWinds) then 
+        !       call read_in_int(nTHMFiles, iError)
+        !       allocate(THMFilenames(nTHMFiles))
+        !       do iTHMFile=1, nTHMFiles
+        !            call read_in_string(THMFilenames(iTHMFile), iError)
+        !       enddo
+        !       call read_netcdf() 
+        !       if (iError /= 0) then
+        !          write(*,*) 'Incorrect format for #OVERWRITETHERMOSPHEREWINDS'
+        !          write(*,*) '#OVERWRITETHERMOSPHEREWINDS'
+        !          write(*,*) 'DoOverwriteThermosphereWinds'
+        !       endif       
+        ! endif
 
         case ("#GITMBCS")
            call read_in_logical(UseGitmBCs,iError) 
@@ -770,6 +830,15 @@ subroutine set_inputs
               write(*,*) "ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)"
               write(*,*) "ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)"
               write(*,*) "ThermalConduction_s   (Conduction s: 0.75, real)"
+           endif
+
+        case ("#TIMECONSTANT")
+           call read_in_real(TimeConstant,iError)
+           if (iError /= 0) then
+              write(*,*) 'Incorrect format for #TIMECONSTANT:'
+              write(*,*) ''
+              write(*,*) '#TIMECONSTANT'
+              write(*,*) "TIME CONSTANT FOR MAXIMUM VERTICAL VELOCITY      (real)"
            endif
 
         case ("#VERTICALSOURCES")

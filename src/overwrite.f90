@@ -150,7 +150,75 @@ subroutine ionosphere_overwrite_sami(iBlock)
         enddo
      enddo
   enddo
-
-
+  
   
 end subroutine ionosphere_overwrite_sami
+
+subroutine overwrite_thermosphere_winds 
+     !need to overwrite thermospheric winds
+     use ModGITM !,only : Velocity,longitude,latitude,Altitude_GB
+     use ModTime ,only : tSimulation
+     use ModInputs
+     use ModSizeGitm
+     use ModConstants, only: pi
+     real :: interp_ktemp_space,interp_zonal_space,interp_merid_space,&
+      interp_density_space,interp_o_space,interp_o2_space,&
+      interp_nitrogen_space,interp_co2_space,interp_no_space,&
+      interp_n_space,interp_vert_space
+     !real, dimension(1:nAlts):: vert_prof
+     real :: vert_prof,alpha,zlb,zmax,temp_north, temp_east, temp_vert
+
+     !TimeConstant=5*60
+     !Timefactor=exp(-tSimulation/TimeConstant)
+     G=1/RelaxationTime
+     alpha=G*Dt
+     alpha=1
+     !write(*,*) ,'Relaxation : ', RelaxationTime, G, Dt,alpha
+     zlb=95
+     zmax=140
+     do iBlock = 1, nBlocks
+        do iLon = -1,nLons+2
+            do iLat = -1, nLats+2
+                do iAlt = 1, nAlts
+                    gitm_lat=Latitude(iLat,iBlock)*180.0/pi
+                    gitm_lon=mod(Longitude(iLon,iBlock)*180/pi+&
+                        360.0,360.0)
+                    gitm_alt= Altitude_GB(iLon,iLat,iAlt,iBlock)/1000.0
+                    frac=(gitm_alt-zlb)/(zmax-zlb)
+                    vert_prof=(cos((pi/2)*frac))**1.2
+                    if (gitm_alt<=zmax) then
+                        call interp_3Dspace(gitm_alt,gitm_lat,gitm_lon,interp_ktemp_space,interp_zonal_space,&
+                            interp_merid_space,interp_density_space,interp_o_space,interp_o2_space,&
+                            interp_nitrogen_space,interp_co2_space,interp_no_space,&
+                            interp_n_space,interp_vert_space)
+                            
+                            !write(*,*) 'Indices : ', iBlock, iLon, iLat, iAlt
+                            !write(*,*)  'GITM alt:',gitm_alt, gitm_lat, gitm_lon
+
+                            !write(*,*) 'Alt : ', gitm_alt,  'Before Merid : ',Velocity(iLon,iLat,iAlt,iNorth_,iBlock),'Before Zonal : ', Velocity(iLon,iLat,iAlt,iEast_,iBlock),&
+                            !'vert_prof : ', vert_prof,'interp merid : ', interp_merid_space, 'interp zonal : ', interp_zonal_space
+                            
+                            temp_north =((1-alpha*vert_prof)* &
+                                Velocity(iLon,iLat,iAlt,iNorth_,iBlock))+((alpha*vert_prof)*interp_merid_space)
+                            temp_east=((1-alpha*vert_prof)* &
+                                Velocity(iLon,iLat,iAlt,iEast_,iBlock))+((alpha*vert_prof)*interp_zonal_space)
+                            temp_vert=((1-alpha*vert_prof)* &
+                                Velocity(iLon,iLat,iAlt,iUp_,iBlock))+((alpha*vert_prof)*interp_vert_space)
+
+                            Velocity(iLon,iLat,iAlt,iNorth_,iBlock)=temp_north
+                            Velocity(iLon,iLat,iAlt,iEast_,iBlock)=temp_east
+                            Velocity(iLon,iLat,iAlt,iUp_,iBlock)=temp_vert
+
+                            !write(*,*) 'Alt : ', gitm_alt, 'After Merid : ',temp_north, Velocity(iLon,iLat,iAlt,iNorth_,iBlock),' After Zonal : ', temp_east, Velocity(iLon,iLat,iAlt,iEast_,iBlock),&
+                            !'vert_prof : ',vert_prof,'interp merid : ', interp_merid_space, 'interp zonal : ', interp_zonal_space
+
+                            !Velocity(iLon,iLat,iAlt,iUp_,iBlock)=((1-alpha*vert_prof)* &
+                            !    Velocity(iLon,iLat,iAlt,iNorth_,iBlock))+((alpha*vert_prof)*interp_merid_space)
+                            !Temperature(iLon,iLat,iAlt,iBlock)=((1-alpha*vert_prof)* &
+                            !    Temperature(iLon,iLat,iAlt,iNorth_,iBlock))+((alpha*vert_prof)*interp_ktemp_space)
+                    endif
+                enddo
+            enddo
+        enddo
+      enddo
+    end subroutine overwrite_thermosphere_winds

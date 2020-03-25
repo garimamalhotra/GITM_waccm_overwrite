@@ -80,7 +80,6 @@ subroutine calc_pressure
         gamma(1:nLons,1:nLats,iAlt,iBlock) = &
              gamma(1:nLons,1:nLats,iAlt,iBlock) *2.0/ &   
              NDensity(1:nLons,1:nLats,iAlt,iBlock) + 1 
-
      enddo
 
   enddo

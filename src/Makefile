@@ -38,8 +38,8 @@ MODULES = \
 	ModRCMR.o \
 	ModReadGitm3d.o\
 	ModSami.o\
-	apexsh.o
-
+	apexsh.o\
+	ModLowerBC.o
 OBJECTS = \
 	planet.o\
 	satellites.o\
@@ -108,8 +108,8 @@ OBJECTS = \
 	calc_tec.o \
 	get_location.o \
 	RCMR_routines.o \
-	check_for_nans.o
-
+	check_for_nans.o \
+	LowerBC_routines.o
 OBJECTS_EXE = main.o ${OBJECTS} ${MODULES}
 
 DEPEND:
@@ -130,7 +130,7 @@ GITM_general:
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
 		-L${ABDIR} -lSphere \
 		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
-		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
+		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1} -lnetcdf -lnetcdff -L/nasa/netcdf/4.4.1.1_mpt/lib 
 
 GITM_for_Darwin:
 	rm -rf Tmp_; mkdir Tmp_

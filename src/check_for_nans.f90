@@ -54,6 +54,31 @@ subroutine check_for_nans_neutrals(cMarker)
 
 end subroutine check_for_nans_neutrals
 
+!subroutine check_for_nans_neutrals_alts(cMarker)
+
+!  use ModSizeGitm
+!  use ModGITM
+!  use ModPlanet
+
+!  implicit none
+
+!  character (LEN=*), intent(in) :: cMarker
+!  integer :: iLon, iLat, iAlt, iNeu
+
+!  do iAlt=-1,nAlts+2
+!    do iNeu=1,nSpecies
+!        if (isnan(nDensityS(iAlt,iNeu,1))) then
+!            write(*,*) 'Nan found in alts nDensityS : '
+!            write(*,*) cMarker
+!            write(*,*) iAlt,iProc,iNeu
+!        endif
+!    enddo
+!  enddo
+
+!end subroutine check_for_nans_neutrals_alts
+
+
+
 subroutine check_for_nans_temps(cMarker)
 
   use ModSizeGitm

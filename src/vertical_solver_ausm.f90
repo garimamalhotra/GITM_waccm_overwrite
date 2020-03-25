@@ -24,12 +24,14 @@ subroutine check_ion_densities(iDen)
 
 end subroutine check_ion_densities
 
-subroutine advance_vertical_1d_ausm
+subroutine advance_vertical_1d_ausm(NewAdiabatic_full_Vert, &
+      NewAdiabatic_Vert, NewAdvective_Vert)
 
   use ModVertical
   use ModPlanet, only: Mass
   use ModGITM, ONLY : Dt, iCommGITM, iProc, iUp_
   use ModInputs, only: UseBarriers, iDebugLevel, UseImprovedIonAdvection
+
   implicit none
   !-----------------------------------------------------------
   integer :: iError, iAlt, iSpecies, iDir
@@ -115,6 +117,13 @@ subroutine advance_vertical_1d_ausm
 
   real :: DtOriginal
   real :: DtIn
+    
+  integer :: iDim
+  real, intent(out) :: NewAdiabatic_full_Vert(1:nAlts), &
+      NewAdiabatic_Vert(1:nAlts), NewAdvective_Vert(1:nAlts)
+  real, dimension(1:nAlts):: DivVel, GradTemp, &
+      DiffVel, DiffTemp
+  real, dimension(1:nAlts,3) :: GradVel_CD, DiffVel_CD
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
   if (iDebugLevel > 6) write(*,*) "=======> vertical bcs 1", iproc
@@ -230,6 +239,7 @@ subroutine advance_vertical_1d_ausm
      NewTemp = Temp
   NewVertVel = VertVel
 
+
 !!!!! Calculate K2
 
   call advance_vertical_1stage_ausm(DtIn, &
@@ -302,6 +312,9 @@ subroutine advance_vertical_1d_ausm
   NewVel_GD = Vel_GD
   NewTemp = Temp
   NewVertVel = VertVel
+
+
+
 !
 !
 !!!!!! Calculate K3
@@ -309,6 +322,7 @@ subroutine advance_vertical_1d_ausm
        LogRho, LogNS, Vel_GD, Temp, NewLogRho, NewLogNS, NewVel_GD, NewTemp, &
        LogINS, NewLogINS, IVel, VertVel, NewVertVel)
 !!!! K3 Coefficients for RK-4
+  
 
        Stage4LogNS(-1:nAlts+2,1:nSpecies)      = &
        Stage1LogNS(-1:nAlts+2,1:nSpecies)      + &
@@ -374,7 +388,9 @@ subroutine advance_vertical_1d_ausm
   NewVel_GD = Vel_GD
   NewTemp = Temp
   NewVertVel = VertVel
-  
+ 
+
+
 !! Calculate K4 (Final Coefficient)
 
   DtIn = 0.5*Dt
@@ -434,9 +450,26 @@ subroutine advance_vertical_1d_ausm
     Temp = FinalTemp
  VertVel = FinalVS
 
+  !Calculating adiabatic terms for usr- Garima
+  call calc_rusanov_alts_ausm(Temp   ,GradTemp,    DiffTemp)
+
+  do iDim = 1, 3
+     call calc_rusanov_alts_ausm(Vel_GD(:,iDim),GradVel_CD(:,iDim),DiffVel_CD(:,iDim))
+  enddo
+
+  ! Add geometrical correction to gradient and obtain divergence
+  DivVel = GradVel_CD(:,iUp_) + 2*Vel_GD(1:nAlts,iUp_)*InvRadialDistance_C(1:nAlts)
+  do iAlt = 1, nAlts
+      NewAdiabatic_full_Vert(iAlt)=(Gamma_1d(iAlt)-1) * Temp(iAlt) &
+           * DivVel(iAlt) 
+      NewAdiabatic_Vert(iAlt)=DivVel(iAlt)
+      NewAdvective_Vert(iAlt)=GradTemp(iAlt)*Vel_GD(iAlt,iUp_) 
+  enddo
+
   if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
   if (iDebugLevel > 7) &
        write(*,*) "========> Done with advance_vertical_1d", iproc
+
 
 end subroutine advance_vertical_1d_ausm
 
@@ -573,6 +606,7 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
 
   ! JMB:  Use these as Limiters on Winds for an initial startup
   real :: TimeFactor, Vel0, DeltaV, VelocityCap
+  real :: Vel0_Waccm, DeltaV_Waccm !Garima
 
   ! ----------------------------------------------------
   ! JMB: 06/27/2016:---- THERMAL CONDUCTION & VISCOSITY
@@ -584,9 +618,22 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
   !--------------------------------------------------------------------------
   !--------------------------------------------------------------------------
   Vel0 = 100.0 ! initial velocity in m/s
-  TimeFactor = exp(-tSimulation/43200.0)
-  DeltaV = MaximumVerticalVelocity - Vel0
-  VelocityCap = Vel0 + DeltaV*(1.0 - TimeFactor)
+  
+  if (UseLowerBC) then 
+      TimeFactor = exp(-tSimulation/TimeConstant)
+      ! Since VelocityCap is not really being used.
+      ! Applying this relaxation factor to MaximumVerticalVelocity
+      Vel0_Waccm = 5.0
+      DeltaV_Waccm = 1000.0 - Vel0_Waccm
+      MaximumVerticalVelocity = Vel0_Waccm + DeltaV_Waccm*&
+          (1.0-TimeFactor)
+  else
+      TimeFactor = exp(-tSimulation/43200.0)
+      DeltaV = MaximumVerticalVelocity - Vel0
+      VelocityCap = Vel0 + DeltaV*(1.0 - TimeFactor)
+
+  endif
+
 
   do iAlt = -1, nAlts + 2
   !   EffectiveGravity(iAlt) = &
@@ -596,6 +643,8 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
         Gravity_G(iAlt) + &
         Centrifugal / InvRadialDistance_C(iAlt) 
   enddo 
+
+
 
   NS = exp(LogNS)
   Rho = exp(LogRho)
@@ -644,6 +693,7 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
           2*VertVel(1:nAlts,iSpecies)*InvRadialDistance_C(1:nAlts)
 
   enddo
+
 
   do iSpecies=1,nIons-1
      call calc_rusanov_alts_ausm(LogINS(:,iSpecies), GradTmp, DiffTmp)
@@ -745,7 +795,9 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
      HydroNS(iAlt,iSpecies) = &
                HydroNS(iAlt+1,iSpecies)*(Temp(iAlt+1)/Temp(iAlt))*&
                exp(dAlt_F(iAlt)*InvScaleHeight)
-  enddo 
+  enddo
+
+
   do iAlt = -1, nAlts + 2
      do iSpecies =  1, nSpecies
        HydroPressureS(iAlt,iSpecies) = &
@@ -801,6 +853,7 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
   NewPress = Press
   NewTotalEnergy = TotalEnergy
   ! Call the AUSM Solvers
+
   call calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRhoS, &
         HydroPressure,  HydroRho, AUSMRhoSFluxes,AUSMMomentumSFluxes, &
         AUSMTotalEnergyFluxes, AUSMMomentumFluxes, RadialDistance_C,  &
@@ -808,6 +861,7 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
 
   AmpSP = (1.0/(10.0*DtIn))
   kSP = nAltsSponge + 1
+
 
   do iAlt = 1,nAlts
      NewLogRho(iAlt) = NewLogRho(iAlt) - DtIn * &
@@ -1010,6 +1064,7 @@ subroutine advance_vertical_1stage_ausm( DtIn, &
      NewSumRho    = sum( Mass(1:nSpecies)*exp(NewLogNS(iAlt,1:nSpecies)) )
      NewLogRho(iAlt) = alog(NewSumRho)
   enddo
+
 
 end subroutine advance_vertical_1stage_ausm
 

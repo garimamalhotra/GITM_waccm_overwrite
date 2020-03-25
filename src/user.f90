@@ -139,7 +139,7 @@ subroutine set_nVarsUser3d
 
   ! Make sure to include Lat, Lon, and Alt
 
-  nVarsUser3d = 5
+  nVarsUser3d = 32
 
   if (nVarsUser3d-3 > nUserOutputs) &
        call stop_gitm("Too many user outputs!! Increase nUserOutputs!!")
@@ -216,7 +216,33 @@ subroutine output_header_user(cType, iOutputUnit_)
      write(iOutputUnit_,"(I7,A1,a)")  3, " ", "Altitude"
      write(iOutputUnit_,"(I7,A1,a)")  4, " ", "Joule Heating"
      write(iOutputUnit_,"(I7,A1,a)")  5, " ", "JPara"
-
+     write(iOutputUnit_,"(I7,A1,a)")  6, " ", "OCooling"
+     write(iOutputUnit_,"(I7,A1,a)")  7, " ", "NOCooling"
+     write(iOutputUnit_,"(I7,A1,a)")  8, " ", "CO2Cooling"
+     write(iOutputUnit_,"(I7,A1,a)")  9, " ", "Adiabatic horizontal"
+     write(iOutputUnit_,"(I7,A1,a)")  10, " ", "Adiabatic_full horizontal"
+     write(iOutputUnit_,"(I7,A1,a)")  11, " ", "TempUnit"
+     write(iOutputUnit_,"(I7,A1,a)")  12, " ", "Advective horizontal"
+     write(iOutputUnit_,"(I7,A1,a)")  13, " ", "Adiabatic Vertical"
+     write(iOutputUnit_,"(I7,A1,a)")  14, " ", "Adiabatic full Vertical"
+     write(iOutputUnit_,"(I7,A1,a)")  15, " ", "Advective Vertical"
+     write(iOutputUnit_,"(I7,A1,a)")  16, " ", "Ion Drag East"
+     write(iOutputUnit_,"(I7,A1,a)")  17, " ", "Ion Drag North"
+     write(iOutputUnit_,"(I7,A1,a)")  18, " ", "Ion Drag Vert"
+     write(iOutputUnit_,"(I7,A1,a)")  19, " ", "Viscosity East"
+     write(iOutputUnit_,"(I7,A1,a)")  20, " ", "Viscosity North"
+     write(iOutputUnit_,"(I7,A1,a)")  21, " ", "Viscosity Vert"
+     write(iOutputUnit_,"(I7,A1,a)")  22, " ", "Vel Gradient East"
+     write(iOutputUnit_,"(I7,A1,a)")  23, " ", "Pressure Gradient East"
+     write(iOutputUnit_,"(I7,A1,a)")  24, " ", "Vel Gradient North"
+     write(iOutputUnit_,"(I7,A1,a)")  25, " ", "Pressure Gradient North"
+     write(iOutputUnit_,"(I7,A1,a)")  26, " ", "Coriolis East"
+     write(iOutputUnit_,"(I7,A1,a)")  27, " ", "Coriolis North"
+     write(iOutputUnit_,"(I7,A1,a)")  28, " ", "Centrifugal North"
+     write(iOutputUnit_,"(I7,A1,a)")  29, " ", "GradTemp East"
+     write(iOutputUnit_,"(I7,A1,a)")  30, " ", "GradRho East"
+     write(iOutputUnit_,"(I7,A1,a)")  31, " ", "GradTemp North"
+     write(iOutputUnit_,"(I7,A1,a)")  32, " ", "GradRho North"
   endif
 
   ! ------------------------------------------

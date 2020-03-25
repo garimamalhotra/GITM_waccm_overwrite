@@ -66,6 +66,7 @@ module ModInputs
   logical :: DoOverwriteIonosphere = .false.
   logical :: DoOverwriteWithIRI    = .true.
   logical :: DoOverwriteWithSami   = .false.
+
   character (len=iCharLen_) :: SamiInFile
   
   real :: AuroralHeightFactor = 1.0
@@ -156,6 +157,7 @@ module ModInputs
   logical :: UseIRI  = .true.
   logical :: UseMSISTides  = .true.
   logical :: UseMSISOnly   = .false.
+  logical :: LowBoundaryTimeInd = .false.
   logical :: UseGSWMTides  = .false.
   logical :: UseWACCMTides = .false.
   logical :: UseMSISDiurnal = .true.
@@ -165,6 +167,15 @@ module ModInputs
   real    :: DtStatisticalModels = 3600.0
 
   logical :: UseGswmComp(4) = .true.
+
+  logical :: LowBMSISonlyO=.false.
+  logical :: LowBVertVel=.false.
+  integer :: nBCFiles = 1
+  logical :: IsRealTime = .true.
+  logical :: UseLowerBC=.false.
+  character (len=iCharLen_), allocatable:: BCFilenames(:)
+  logical :: DoOverwriteThermosphereWinds = .false.
+  real :: RelaxationTime 
 
   real :: MagneticPoleRotation = 0.0
   real :: MagneticPoleTilt = 0.0
@@ -185,6 +196,7 @@ module ModInputs
   logical :: UseDamping = .false.
 
 !! EddyVelocity Terms
+  real    :: TimeConstant=43200.0
   real    :: MaximumVerticalVelocity = 1000.0
 
   !\

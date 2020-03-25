@@ -90,7 +90,8 @@ subroutine calc_planet_sources(iBlock)
   use ModEUV
   use ModGITM
   use ModTime
-  
+  use ModUserGITM
+
   implicit none
 
   integer, intent(in) :: iBlock
@@ -198,6 +199,7 @@ subroutine calc_planet_sources(iBlock)
 
   endif
 
+
 !  do iAlt = 1,15
 !     write(*,*) 'no, co2 : ',iAlt, Altitude_GB(1,1,iAlt,iBlock)/1e3, &
 !          NOCooling(1,1,iAlt), CO2Cooling(1,1,iAlt)
@@ -206,6 +208,17 @@ subroutine calc_planet_sources(iBlock)
   RadCooling(1:nLons,1:nLats,1:nAlts,iBlock) = &
        OCooling + NOCooling + CO2Cooling
 
+  UserData3D(:,:,:,3,iBlock) = 0.0
+  UserData3D(1:nLons,1:nLats,1:nAlts,3,iBlock) =  OCooling(1:nLons,1:nLats,1:nAlts)
+
+  UserData3D(:,:,:,4,iBlock) = 0.0
+  UserData3D(1:nLons,1:nLats,1:nAlts,4,iBlock) =  NOCooling(1:nLons,1:nLats,1:nAlts)
+
+  UserData3D(:,:,:,5,iBlock) = 0.0
+  UserData3D(1:nLons,1:nLats,1:nAlts,5,iBlock) =  CO2Cooling(1:nLons,1:nLats,1:nAlts)
+
+  UserData3D(:,:,:,8,iBlock) = 0.0
+  UserData3D(1:nLons,1:nLats,1:nAlts,8,iBlock) =  TempUnit(1:nLons,1:nLats,1:nAlts)
 
   PhotoElectronHeating(:,:,:,iBlock) = 0.0
   PhotoElectronHeating(:,:,:,iBlock) = &

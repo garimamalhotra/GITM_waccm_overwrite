@@ -49,14 +49,21 @@ subroutine advance
   if (UseGSWMTides)  call update_tides
   if (UseWACCMTides) call update_waccm_tides
   if (UsePerturbation) call user_perturbation
+  if (UseLowerBC) then 
+      !write(*,*) 'start'
+      call load_files_mem_eff
+      call interp_time
+  endif
 
   if (.not. UseStatisticalModelsOnly) then
-
      call advance_vertical_all
-     if (DoOverwriteIonosphere) call overwrite_ionosphere
-     call add_sources 
-     if (.not. Is1D) call advance_horizontal_all
 
+     if (DoOverwriteIonosphere) call overwrite_ionosphere
+     
+     call add_sources 
+
+     if (.not. Is1D) call advance_horizontal_all
+     if (DoOverwriteThermosphereWinds) call overwrite_thermosphere_winds
   else
 
      Dt = DtStatisticalModels

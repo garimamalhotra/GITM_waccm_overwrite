@@ -1,6 +1,10 @@
 **.o
 **.mod
+**.swp
 run/
+run_*/
+**.dat
+**.txt
 Makefile.conf
 Makefile.def
 share/Library/src/Makefile.DEPEND

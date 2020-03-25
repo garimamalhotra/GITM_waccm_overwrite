@@ -137,6 +137,25 @@ iAlt = 10
             Velocity(1:nLons, 1:nLats, 0:nAlts+1, iDir, iBlock) + &
             Viscosity(1:nLons,1:nLats, 0:nAlts+1,iDir)
      enddo 
+      
+     UserData3D(:,:,:,13,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,1:nAlts,13,iBlock) =IonDrag(1:nLons,1:nLats,1:nAlts,1)
+
+     UserData3D(:,:,:,14,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,1:nAlts,14,iBlock) =IonDrag(1:nLons,1:nLats,1:nAlts,2)
+
+     UserData3D(:,:,:,15,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,1:nAlts,15,iBlock) =IonDrag(1:nLons,1:nLats,1:nAlts,3)
+
+     UserData3D(:,:,:,16,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,0:nAlts+1,16,iBlock) =Viscosity(1:nLons,1:nLats, 0:nAlts+1,1)
+
+     UserData3D(:,:,:,17,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,0:nAlts+1,17,iBlock) =Viscosity(1:nLons,1:nLats, 0:nAlts+1,2)
+
+     UserData3D(:,:,:,18,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,0:nAlts+1,18,iBlock) =Viscosity(1:nLons,1:nLats, 0:nAlts+1,3)
+
 
      !! To turn off IonDrag, turn UseIonDrag=.false. in UAM.in
      !! To turn off NeutralFriction, turn UseNeutralFriction=.false. in UAM.in
