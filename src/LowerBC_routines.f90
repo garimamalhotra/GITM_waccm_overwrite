@@ -77,6 +77,7 @@ subroutine load_file_w_indices_only_one(l)
     !This 'l' is the index of the next element - between which the current time lies
     file_index=(l/24)+1 !because we don't want 0 index for the first file
     index_within_file=modulo(l,24)
+
     !write(*,*) 'value of l index : ' ,l, file_index, index_within_file
     k=0
     real_hours=2
@@ -167,6 +168,11 @@ subroutine load_file_w_indices_only_one(l)
           k=k+1 
         end do
     else
+        if (index_within_file==0) then
+            file_index=file_index-1
+            index_within_file=24
+        end if
+
         i=file_index
         if (.not. allocated(hour)) then
           call allocate_vars(i,ncid)
@@ -206,6 +212,7 @@ subroutine load_file_w_indices_only_one(l)
           iError=nf90_get_var(ncid,alt_id,alt_waccm)
           iError=nf90_get_var(ncid,hour_id,temp)
           hour(1:2)=temp(index_within_file-1:index_within_file)
+          !write(*,*) 'Hours : ', nHours, temp
           !write(*,*),'Before assign : ', ktemp
           iError=nf90_get_var(ncid,ktemp_id,ktemp,start=(/ 1,1,1,index_within_file-1 /),count=(/ nLons,nLats,num_Alts,2 /))
           iError=nf90_get_var(ncid,zonal_id,zonal,start=(/ 1,1,1,index_within_file-1 /),count=(/ nLons,nLats,num_Alts,2 /))
@@ -720,17 +727,28 @@ subroutine interp_time
     
     !write(*,*) 'Minval time : ', minval(interp_ktemp),minval(interp_atomic_n)
     if (minval(interp_ktemp)<0) then
-        write(*,*) 'negative time temp'
+        write(*,*) 'negative time temp',minval(interp_ktemp)
     endif
-    if (minval(atomic_n)<0)then
-        write(*,*) 'First Minimum in time', minval(atomic_n)    
+    if (minval(interp_o)<0)then
+        write(*,*) 'First Minimum in time', minval(interp_o)    
     endif
     
-    if (minval(interp_atomic_n)<0) then
-    write(*,*) 'Second Minimum in time', minval(interp_atomic_n)    
+    if (minval(interp_nitrogen)<0) then
+    write(*,*) 'Second Minimum in time', minval(interp_nitrogen)    
     endif
 
+    if (minval(ktemp)<0) then
+        write(*,*) 'negative time temp original', minval(ktemp)
+    endif
+    if (minval(o)<0)then
+        write(*,*) 'First Minimum in time original ', minval(o)    
+    endif
     
+    if (minval(nitrogen)<0) then
+    write(*,*) 'Second Minimum in time original ', minval(nitrogen)    
+    endif
+
+
     !write(*,*) 'Hour_array', hour
 
     contains 
