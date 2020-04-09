@@ -28,8 +28,6 @@ subroutine advance_horizontal(iBlock)
   real :: Num_CV(-1:nLons+2,-1:nLats+2,nSpecies)
   real :: VertVel_CV(-1:nLons+2,-1:nLats+2,nSpecies)
   real :: INum_CV(-1:nLons+2,-1:nLats+2,nIonsAdvect)
-  real :: Adiabatic_C(nLons,nLats)
-  real :: Adiabatic_full_C(nLons,nLats)
 
   real :: NewRho_C(nLons,nLats)
   real :: NewTemp_C(nLons,nLats)
@@ -53,8 +51,6 @@ subroutine advance_horizontal(iBlock)
   real :: OrigNum_CV(nLons,nLats, nSpecies)
   real :: OrigVertVel_CV(nLons,nLats, nSpecies)
   real :: OrigINum_CV(nLons,nLats, nIonsAdvect)
-  real :: OrigAdiabatic_C(nLons,nLats)
-  real :: OrigAdiabatic_full_C(nLons,nLats)
 
   real :: UpdatedRho_C(nLons,nLats)
   real :: UpdatedTemp_C(nLons,nLats)
@@ -62,8 +58,6 @@ subroutine advance_horizontal(iBlock)
   real :: UpdatedNum_CV(nLons,nLats, nSpecies)
   real :: UpdatedVertVel_CV(nLons,nLats, nSpecies)
   real :: UpdatedINum_CV(nLons,nLats, nIonsAdvect)
-  real :: UpdatedAdiabatic_C(nLons,nLats)
-  real :: UpdatedAdiabatic_full_C(nLons,nLats)
 
   real :: K1Rho_C(nLons,nLats)
   real :: K1Temp_C(nLons,nLats)
@@ -71,8 +65,6 @@ subroutine advance_horizontal(iBlock)
   real :: K1Num_CV(nLons,nLats, nSpecies)
   real :: K1VertVel_CV(nLons,nLats, nSpecies)
   real :: K1INum_CV(nLons,nLats, nIonsAdvect)
-  real :: K1Adiabatic_C(nLons,nLats)
-  real :: K1Adiabatic_full_C(nLons,nLats)
 
   real :: K2Rho_C(nLons,nLats)
   real :: K2Temp_C(nLons,nLats)
@@ -80,8 +72,6 @@ subroutine advance_horizontal(iBlock)
   real :: K2Num_CV(nLons,nLats, nSpecies)
   real :: K2VertVel_CV(nLons,nLats, nSpecies)
   real :: K2INum_CV(nLons,nLats, nIonsAdvect)
-  real :: K2Adiabatic_C(nLons,nLats)
-  real :: K2Adiabatic_full_C(nLons,nLats)
 
   real :: K3Rho_C(nLons,nLats)
   real :: K3Temp_C(nLons,nLats)
@@ -89,8 +79,6 @@ subroutine advance_horizontal(iBlock)
   real :: K3Num_CV(nLons,nLats, nSpecies)
   real :: K3VertVel_CV(nLons,nLats, nSpecies)
   real :: K3INum_CV(nLons,nLats, nIonsAdvect)
-  real :: K3Adiabatic_C(nLons,nLats)
-  real :: K3Adiabatic_full_C(nLons,nLats)
 
   real :: K4Rho_C(nLons,nLats)
   real :: K4Temp_C(nLons,nLats)
@@ -98,8 +86,6 @@ subroutine advance_horizontal(iBlock)
   real :: K4Num_CV(nLons,nLats, nSpecies)
   real :: K4VertVel_CV(nLons,nLats, nSpecies)
   real :: K4INum_CV(nLons,nLats, nIonsAdvect)
-  real :: K4Adiabatic_C(nLons,nLats)
-  real :: K4Adiabatic_full_C(nLons,nLats)
 
   real :: newvelgrad_east(nLons,nLats)
   real :: newpresgrad_east(nLons,nLats)
@@ -129,6 +115,20 @@ subroutine advance_horizontal(iBlock)
       CentrifugalParameter,CosLat(nLats), &
       SinLat(nLats)
   integer :: iDim
+
+  real :: GradLonRho_usr(nLons,nLats) 
+  real :: GradLatRho_usr(nLons,nLats) 
+  real :: DiffLonRho_usr(nLons,nLats)
+  real :: DiffLatRho_usr(nLons,nLats)
+  real :: GradLonTemp_usr(nLons,nLats) 
+  real :: GradLatTemp_usr(nLons,nLats) 
+  real :: DiffLonTemp_usr(nLons,nLats)
+  real :: DiffLatTemp_usr(nLons,nLats)
+  real :: DivVel_usr(nLons,nLats)
+  real :: GradLonVel_usr(nLons,nLats,3) 
+  real :: GradLatVel_usr(nLons,nLats,3) 
+  real :: DiffLonVel_usr(nLons,nLats,3)
+  real :: DiffLatVel_usr(nLons,nLats,3)
 
   !----------------------------------------------------------------------------
   MaxDiff = 0.0
@@ -389,52 +389,57 @@ subroutine advance_horizontal(iBlock)
      Temperature(1:nLons,1:nLats,iAlt,iBlock)             = NewTemp_C
      VerticalVelocity(1:nLons,1:nLats,iAlt,1:nSpecies,iBlock)         = &
          NewVertVel_CV
-    
-     UserData3D(:,:,iAlt,6,iBlock) = 0.0
-     UserData3D(1:nLons,1:nLats,iAlt,6,iBlock) =  NewAdiabatic_C(1:nLons,1:nLats)
-
-     UserData3D(:,:,iAlt,7,iBlock) = 0.0
-     UserData3D(1:nLons,1:nLats,iAlt,7,iBlock) =  NewAdiabatic_full_C(1:nLons,1:nLats)
-
-     UserData3D(:,:,iAlt,9,iBlock) = 0.0
-     UserData3D(1:nLons,1:nLats,iAlt,9,iBlock) =  NewAdvective_C(1:nLons,1:nLats)
-
-     call calc_rusanov_lons( Temperature(:,:,iAlt,iBlock), GradLonTemp_C, DiffLonTemp_C)
-     call calc_rusanov_lats( Temperature(:,:,iAlt,iBlock), GradLatTemp_C, DiffLatTemp_C)
-     call calc_rusanov_lons( Rho(:,:,iAlt,iBlock),  GradLonRho_C,  DiffLonRho_C)
-     call calc_rusanov_lats( Rho(:,:,iAlt,iBlock),  GradLatRho_C,  DiffLatRho_C)
+   
+      
+    !For usr files - Garima
+     call calc_rusanov_lons( Temperature(:,:,iAlt,iBlock), GradLonTemp_usr, DiffLonTemp_usr)
+     call calc_rusanov_lats( Temperature(:,:,iAlt,iBlock), GradLatTemp_usr, DiffLatTemp_usr)
+     call calc_rusanov_lons( Rho(:,:,iAlt,iBlock),  GradLonRho_usr,  DiffLonRho_usr)
+     call calc_rusanov_lats( Rho(:,:,iAlt,iBlock),  GradLatRho_usr,  DiffLatRho_usr)
      do iDim = 1,3
        call calc_rusanov_lons(Velocity(:,:,iAlt,iDim,iBlock), &
-            GradLonVel_CD(:,:,iDim), DiffLonVel_CD(:,:,iDim))
+            GradLonVel_usr(:,:,iDim), DiffLonVel_usr(:,:,iDim))
        call calc_rusanov_lats(Velocity(:,:,iAlt,iDim,iBlock), &
-            GradLatVel_CD(:,:,iDim), DiffLatVel_CD(:,:,iDim))
+            GradLatVel_usr(:,:,iDim), DiffLatVel_usr(:,:,iDim))
     enddo
     SinLat = sin(Latitude(1:nLats,iBlock))
     CosLat = CosLatitude(1:nLats,iBlock)
+
+
     do iLat=1,nLats
        CoriolisSin = SinLat(iLat) * 2 * OmegaBodyInput
        CoriolisCos = CosLat(iLat) * 2 * OmegaBodyInput
        CentrifugalParameter = OmegaBodyInput**2 * cosLat(iLat) * &
             sinLat(iLat)
+       DivVel_usr(:,iLat) = &
+            GradLatVel_usr(:,iLat,iNorth_) + GradLonVel_usr(:,iLat,iEast_) &
+            - TanLatitude(iLat,iBlock) * Velocity(1:nLons,iLat,iAlt,iNorth_,iBlock) * &
+            InvRadialDistance_GB(1:nLons,iLat,iAlt,iBlock)
 
        do iLon=1,nLons
-         newvelgrad_east(iLon,iLat)=-(Velocity(iLon,iLat,iAlt,iNorth_,iBlock)*GradLatVel_CD(iLon,iLat,iEast_) + &
-           Velocity(iLon,iLat,iAlt,iEast_,iBlock )*GradLonVel_CD(iLon,iLat,iEast_) + &
+          NewAdiabatic_full_C(iLon,iLat)=(gamma_c(iLon,iLat)-1) * Temperature(iLon,iLat,iAlt,iBlock) &
+           * DivVel_usr(iLon,iLat) 
+          NewAdiabatic_C(iLon,iLat)=DivVel_usr(iLon,iLat) 
+          NewAdvective_C(iLon,iLat)=GradLatTemp_usr(iLon,iLat)*Velocity(iLon,iLat,iAlt,iNorth_,iBlock) & 
+           + GradLonTemp_usr(iLon,iLat)*Velocity(iLon,iLat,iAlt,iEast_,iBlock) 
+
+         newvelgrad_east(iLon,iLat)=-(Velocity(iLon,iLat,iAlt,iNorth_,iBlock)*GradLatVel_usr(iLon,iLat,iEast_) + &
+           Velocity(iLon,iLat,iAlt,iEast_,iBlock )*GradLonVel_usr(iLon,iLat,iEast_) + &
            Velocity(iLon,iLat,iAlt,iEast_,iBlock)*(Velocity(iLon,iLat,iAlt,iUp_,iBlock) &
            - TanLatitude(iLat,iBlock)*Velocity(iLon,iLat,iAlt,iNorth_,iBlock)) &
            * InvRadialDistance_GB(iLon,iLat,iAlt,iBlock))
            
-         newpresgrad_east(iLon,iLat)=-(GradLonTemp_C(iLon,iLat) + & 
-           GradLonRho_C(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
+         newpresgrad_east(iLon,iLat)=-(GradLonTemp_usr(iLon,iLat) + & 
+           GradLonRho_usr(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
          
-         newvelgrad_north(iLon,iLat)=-(Velocity(iLon,iLat,iAlt,iNorth_,iBlock)*GradLatVel_CD(iLon,iLat,iNorth_) + &
-           Velocity(iLon,iLat,iAlt,iEast_,iBlock)*GradLonVel_CD(iLon,iLat,iNorth_) + &
+         newvelgrad_north(iLon,iLat)=-(Velocity(iLon,iLat,iAlt,iNorth_,iBlock)*GradLatVel_usr(iLon,iLat,iNorth_) + &
+           Velocity(iLon,iLat,iAlt,iEast_,iBlock)*GradLonVel_usr(iLon,iLat,iNorth_) + &
            (Velocity(iLon,iLat,iAlt,iNorth_,iBlock)*Velocity(iLon,iLat,iAlt,iUp_,iBlock) &
            + TanLatitude(iLat,iBlock)*Velocity(iLon,iLat,iAlt,iEast_,iBlock)**2 &
            ) * InvRadialDistance_GB(iLon,iLat,iAlt,iBlock))
 
-         newpresgrad_north(iLon,iLat)=-(GradLatTemp_C(iLon,iLat) + & 
-           GradLatRho_C(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
+         newpresgrad_north(iLon,iLat)=-(GradLatTemp_usr(iLon,iLat) + & 
+           GradLatRho_usr(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
         
          coriolis_east(iLon,iLat)= CoriolisSin * Velocity(iLon,iLat,iAlt,iNorth_,iBlock) &
               - CoriolisCos * Velocity(iLon,iLat,iAlt,iUp_,iBlock)
@@ -444,14 +449,21 @@ subroutine advance_horizontal(iBlock)
          centrifugal_north(iLon,iLat)=-(CentrifugalParameter &
               * RadialDistance_GB(iLon,iLat,iAlt,iBlock))
         
-         gradtemp_east=-(GradLonTemp_C(iLon,iLat)) 
-         gradrho_east=-(GradLonRho_C(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
-         gradtemp_north=-(GradLatTemp_C(iLon,iLat))
-         gradrho_north= -(GradLatRho_C(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
+         gradtemp_east=-(GradLonTemp_usr(iLon,iLat)) 
+         gradrho_east=-(GradLonRho_usr(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
+         gradtemp_north=-(GradLatTemp_usr(iLon,iLat))
+         gradrho_north= -(GradLatRho_usr(iLon,iLat)*Temperature(iLon,iLat,iAlt,iBlock)/Rho(iLon,iLat,iAlt,iBlock))
 
 
       enddo
    enddo
+     
+     UserData3D(:,:,iAlt,6,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,iAlt,6,iBlock) =  NewAdiabatic_C(1:nLons,1:nLats)
+     UserData3D(:,:,iAlt,7,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,iAlt,7,iBlock) =  NewAdiabatic_full_C(1:nLons,1:nLats)
+     UserData3D(:,:,iAlt,9,iBlock) = 0.0
+     UserData3D(1:nLons,1:nLats,iAlt,9,iBlock) =  NewAdvective_C(1:nLons,1:nLats)
      UserData3D(:,:,iAlt,19,iBlock) = 0.0
      UserData3D(1:nLons,1:nLats,iAlt,19,iBlock) =newvelgrad_east(1:nLons,1:nLats)
      UserData3D(:,:,iAlt,20,iBlock) = 0.0
@@ -829,12 +841,6 @@ contains
                + GradLonTemp_C(iLon,iLat)*Vel_CD(iLon,iLat,iEast_)) & 
                + Dt * (DiffLonTemp_C(iLon,iLat)+DiffLatTemp_C(iLon,iLat))
          
-          NewAdiabatic_full_C(iLon,iLat)=(gamma_c(iLon,iLat)-1) * Temp_C(iLon,iLat) &
-               * DivVel_C(iLon,iLat) 
-          NewAdiabatic_C(iLon,iLat)=DivVel_C(iLon,iLat) 
-          NewAdvective_C(iLon,iLat)=GradLatTemp_C(iLon,iLat)*Vel_CD(iLon,iLat,iNorth_) & 
-               + GradLonTemp_C(iLon,iLat)*Vel_CD(iLon,iLat,iEast_) 
-
        end do
     end do
 

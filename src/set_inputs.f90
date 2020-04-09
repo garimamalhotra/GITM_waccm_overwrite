@@ -425,21 +425,6 @@ subroutine set_inputs
               write(*,*) 'SamiInFile'
            endif
         
-        !case ("#OVERWRITETHERMOSPHEREWINDS")
-        !   call read_in_logical(DoOverwriteThermosphereWinds,iError)
-        !   if (DoOverwriteThermosphereWinds) then 
-        !       call read_in_int(nTHMFiles, iError)
-        !       allocate(THMFilenames(nTHMFiles))
-        !       do iTHMFile=1, nTHMFiles
-        !            call read_in_string(THMFilenames(iTHMFile), iError)
-        !       enddo
-        !       call read_netcdf() 
-        !       if (iError /= 0) then
-        !          write(*,*) 'Incorrect format for #OVERWRITETHERMOSPHEREWINDS'
-        !          write(*,*) '#OVERWRITETHERMOSPHEREWINDS'
-        !          write(*,*) 'DoOverwriteThermosphereWinds'
-        !       endif       
-        ! endif
 
         case ("#GITMBCS")
            call read_in_logical(UseGitmBCs,iError) 
