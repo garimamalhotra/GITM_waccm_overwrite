@@ -23,14 +23,12 @@ src/calc_chemistry.f90
 src/calc_electron_temperature.f90
 src/calc_rates.f90
 src/init_iri.f90
-src/init_msis.f90
 src/libEMPIRICALIE.a
 src/libEMPIRICALUA.a
 src/libINDICES.a
 src/libSHARE.a
 src/output.f90
 src/planet.f90
-src/set_vertical_bcs.f90
 srcData/UAM.in
 srcGlow/libGLOW.a
 srcInterface/Makefile.DEPEND
